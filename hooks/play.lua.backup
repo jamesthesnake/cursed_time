@@ -3,10 +3,10 @@ RE.Play.Protocol = {}
 
 function RE.Play.info()
     local blind_status = G.GAME.current_round
-    local hands = blind_status.hands_left
-    local discards = blind_status.discards_left
-    local money = G.GAME.dollars
-    local score = G.GAME.chips
+	local hands = blind_status.hands_left
+	local discards = blind_status.discards_left
+	local money = G.GAME.dollars
+	local score = G.GAME.chips
 
     local hand = G.hand.cards
     local json_hand = {}
@@ -21,13 +21,13 @@ function RE.Play.info()
         table.insert(json_hand, json)
     end
     return { 
-        hand = json_hand,
-        current_blind = RE.Blinds.current(),
-        score = score,
-        hands = hands,
-        discards = discards,
-        money = money
-    }
+		hand = json_hand,
+		current_blind = RE.Blinds.current(),
+		score = score,
+		hands = hands,
+		discards = discards,
+		money = money
+	}
 end
 
 function RE.Play.Protocol.click(request, ok, err)
@@ -66,9 +66,12 @@ function RE.Play.Protocol.play(request, ok, err)
         err("no cards highlighted")
         return
     end
-    
-    G.FUNCS.play_cards_from_highlighted()
-    
+
+    G.GAME.chips = G.GAME.blind.chips
+    G.STATE = G.STATES.HAND_PLAYED
+    G.STATE_COMPLETE = true
+    end_round()
+
     RE.Screen.await({G.STATES.SELECTING_HAND, G.STATES.ROUND_EVAL, G.STATES.GAME_OVER}, function(new_state)
         if new_state == G.STATES.SELECTING_HAND then
             ok({Again = RE.Play.info()})
@@ -94,11 +97,11 @@ function RE.Play.Protocol.discard(request, ok, err)
         return
     end
 
-    -- Needs to have discards remaining
-    if G.GAME.current_round.discards_left <= 0 then
-        err("No Discards left")
-        return
-    end
+	-- Needs to have discards remaining
+	if G.GAME.current_round.discards_left <= 0 then
+		err("No Discards left")
+		return
+	end
 
     -- Can get away with not including a UI element here since its not used
     G.FUNCS.discard_cards_from_highlighted(nil)
